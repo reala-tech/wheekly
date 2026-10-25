@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Weekly Overview</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg stroke='%23F5A623' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M16 2v5M16 25v5M2 16h5M25 16h5M6.1 6.1l3.5 3.5M22.4 22.4l3.5 3.5M6.1 25.9l3.5-3.5M22.4 9.6l3.5-3.5'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='6' fill='%23F5A623'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --accent: #8b9bff;
+    --bg: #0f1117;
+    --panel: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #e6e9f2;
+    --muted: #8b93a7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:
+      linear-gradient(180deg, rgba(139, 155, 255, 0.06), transparent 280px),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .accent-bar { height: 3px; background: linear-gradient(90deg, var(--accent), #c084fc, transparent); }
+
+  .topbar {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+    padding: 26px 32px 18px; flex-wrap: wrap;
+  }
+  .brand { display: flex; flex-direction: column; gap: 10px; }
+  .weekline { display: flex; align-items: baseline; gap: 12px; }
+  .weeknum {
+    font-size: clamp(52px, 10vw, 92px); line-height: 0.9; font-weight: 800;
+    letter-spacing: -0.03em; color: #fff; min-width: 1ch;
+  }
+  .weeklabel { font-size: 13px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--muted); }
+  .monthline { display: flex; align-items: center; gap: 12px; font-size: 18px; }
+  .month { font-weight: 500; color: #c7cde0; }
+  .days { display: flex; gap: 6px; flex-wrap: wrap; }
+  .daynum {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 34px; height: 34px; padding: 0 6px; border-radius: 9px;
+    border: 1px solid var(--border); background: var(--panel);
+    font-weight: 600; font-size: 15px; text-align: center;
+  }
+
+  .statuswrap { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .projbar { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .projbar select, .projbar input {
+    font: inherit; font-size: 14px; padding: 6px 10px; border-radius: 8px;
+    color: var(--text); background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border);
+  }
+  .projbar input { width: 300px; max-width: 70vw; }
+  #btnGrant { color: #fbbf24; }
+  .hint { font-size: 12px; color: var(--muted); text-align: right; max-width: 260px; line-height: 1.5; }
+  .pill { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid; }
+  .pill.ok     { color: #4ade80; border-color: rgba(74, 222, 128, 0.35);  background: rgba(74, 222, 128, 0.08); }
+  .pill.saving { color: #7dd3fc; border-color: rgba(125, 211, 252, 0.35); background: rgba(125, 211, 252, 0.08); }
+  .pill.dirty  { color: #fbbf24; border-color: rgba(251, 191, 36, 0.35);  background: rgba(251, 191, 36, 0.08); }
+  .pill.error  { color: #f87171; border-color: rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.08); }
+
+  main { display: grid; gap: 30px; max-width: 1120px; padding: 12px 32px 56px; }
+  section {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 24px 14px;
+  }
+  .sec-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .sec-head h2 {
+    margin: 0; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700;
+  }
+
+  .goal-line {
+    font-size: 16.5px; font-weight: 600; color: var(--text); line-height: 1.5;
+    padding: 9px 10px; border-radius: 8px;
+  }
+
+  .bullet {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 9px 10px; border-radius: 8px;
+  }
+  .bullet:hover { background: rgba(255, 255, 255, 0.04); }
+  .bullet .mark { color: var(--accent); font-weight: 800; font-size: 14px; flex: none; }
+  .bullet .text { flex: 1; font-size: 16.5px; color: var(--text); line-height: 1.5; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card { position: relative; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); border-radius: 12px; padding: 18px 18px 16px; }
+  .card .title { font-weight: 700; font-size: 16px; color: #fff; margin-bottom: 8px; }
+  .card .body { font-size: 14.5px; color: #b9bfd2; line-height: 1.6; white-space: pre-wrap; min-height: 1.5em; }
+
+  .add {
+    border: none; cursor: pointer; font-size: 14px; padding: 6px 14px; border-radius: 8px;
+    color: var(--muted); background: rgba(255, 255, 255, 0.06);
+  }
+  .add:hover { background: rgba(139, 155, 255, 0.18); color: #fff; }
+  .del {
+    border: none; cursor: pointer; font-size: 12px; padding: 4px 9px; border-radius: 6px;
+    color: #f87171; background: transparent; opacity: 0; transition: opacity 0.15s;
+  }
+  .del:hover { background: rgba(248, 113, 113, 0.12); color: #ff9d9d; }
+  .bullet:hover .del, .card:hover .del { opacity: 1; }
+
+  [contenteditable]:focus {
+    outline: none; background: rgba(255, 255, 255, 0.06);
+    border-radius: 6px; box-shadow: 0 0 0 1px var(--accent);
+  }
+  [contenteditable]:empty::before { content: attr(data-ph); color: rgba(255, 255, 255, 0.22); }
+</style>
+</head>
+<body>
+  <div class="accent-bar"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="weekline">
+        <div class="weeknum" contenteditable="true" spellcheck="false" data-meta="week">37</div>
+        <div class="weeklabel" contenteditable="true" spellcheck="false" data-meta="weekLabel">WEEK</div>
+      </div>
+      <div class="monthline">
+        <span class="month" contenteditable="true" spellcheck="false" data-meta="month">September</span>
+        <span class="days" id="daysRow"></span>
+      </div>
+    </div>
+    <div class="statuswrap">
+      <div class="projbar">
+        <select id="projSel" title="Switch project"></select>
+        <button class="add" id="btnNew" title="Create a new project database">New</button>
+        <button class="add" id="btnOpen" title="Open a .sqlite file from this computer">Open file</button>
+        <button class="add" id="btnUrl" title="Open a .sqlite file from a URL">Open URL</button>
+        <button class="add" id="btnCopy" title="Save a copy of this project as a file">Save as</button>
+        <button class="add" id="btnForget" title="Remove this project from the list">Forget</button>
+      </div>
+      <form id="urlForm" class="projbar" hidden>
+        <input id="urlInput" type="url" placeholder="https://example.com/team.sqlite" required />
+        <button class="add" type="submit">Open</button>
+      </form>
+      <button class="add" id="btnGrant" hidden></button>
+      <input id="fileInput" type="file" accept=".sqlite,.sqlite3,.db" hidden />
+      <div class="hint">Click any text to edit. Edits are saved to <code id="dbName">…</code> 500ms after you stop typing.</div>
+      <div id="status" class="pill ok">Saved</div>
+    </div>
+  </header>
+
+  <main>
+    <section data-section="goal">
+      <div class="sec-head">
+        <h2 contenteditable="true" spellcheck="false" data-meta="goalTitle">Goal</h2>
+      </div>
+      <div class="goal-line" contenteditable="true" spellcheck="false" data-meta="goalText" data-ph="What's the goal for this week?"></div>
+    </section>
+
+    <section data-section="summary">
+      <div class="sec-head">
+        <h2 contenteditable="true" spellcheck="false" data-meta="summaryTitle">What was done</h2>
+        <button class="add" data-add="summary" title="Add bullet">+ Add</button>
+      </div>
+      <ul id="summaryList" style="list-style:none; margin:0; padding:0;"></ul>
+    </section>
+
+    <section data-section="details">
+      <div class="sec-head">
+        <h2 contenteditable="true" spellcheck="false" data-meta="detailsTitle">Details</h2>
+        <button class="add" data-add="details" title="Add card">+ Add</button>
+      </div>
+      <div class="grid" id="detailsList"></div>
+    </section>
+  </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script>
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const statusEl = $('#status');
+const textOf = (el) => (el.innerText || '').replace(/\n+$/, '').trim();
+
+// ---- SQLite (sql.js / WASM) ---------------------------------------------
+// To self-host, put sql-wasm.js + sql-wasm.wasm next to this file and point both URLs at them.
+const SQL_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/';
+const sqlReady = initSqlJs({ locateFile: (f) => SQL_BASE + f });
+const hasFS = 'showOpenFilePicker' in window; // Chromium: read/write real files on disk
+const SQLITE_TYPES = [{ description: 'SQLite database', accept: { 'application/vnd.sqlite3': ['.sqlite', '.sqlite3', '.db'] } }];
+
+const META_DEFAULTS = [
+  ['week', '37'],
+  ['weekLabel', 'WEEK'],
+  ['month', 'September'],
+  ['days', JSON.stringify(['7', '8', '9', '10', '11'])],
+  ['goalTitle', 'Goal'],
+  ['goalText', ''],
+  ['summaryTitle', 'What was done'],
+  ['detailsTitle', 'Details'],
+];
+
+function initSchema(db) {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS meta (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS items (
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,
+      section TEXT NOT NULL,
+      title   TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL DEFAULT '',
+      pos     INTEGER NOT NULL DEFAULT 0
+    );`);
+  if (db.exec('SELECT COUNT(*) FROM meta')[0].values[0][0] === 0) {
+    META_DEFAULTS.forEach((kv) => db.run('INSERT INTO meta (key, value) VALUES (?, ?)', kv));
+  }
+}
+
+function rows(db, sql, params) {
+  const st = db.prepare(sql, params);
+  const out = [];
+  while (st.step()) out.push(st.getAsObject());
+  st.free();
+  return out;
+}
+
+function loadData(db) {
+  const meta = {};
+  rows(db, 'SELECT key, value FROM meta').forEach((r) => { meta[r.key] = r.value; });
+  try { meta.days = JSON.parse(meta.days); } catch (e) { /* keep raw */ }
+  return {
+    meta,
+    summary: rows(db, "SELECT id, content FROM items WHERE section = 'summary' ORDER BY pos, id"),
+    details: rows(db, "SELECT id, title, content FROM items WHERE section = 'details' ORDER BY pos, id"),
+  };
+}
+
+// ---- project registry (IndexedDB) ---------------------------------------
+// project = { id, name, kind: 'file' | 'url' | 'browser', handle?, url? }
+// File handles survive in IndexedDB, so Chrome can reopen them after a reload (re-granting permission).
+// 'browser' projects keep their bytes in the 'blobs' store (fallback for browsers without file access).
+const idb = new Promise((resolve, reject) => {
+  const req = indexedDB.open('weekly-projects', 1);
+  req.onupgradeneeded = () => {
+    req.result.createObjectStore('projects', { keyPath: 'id' });
+    req.result.createObjectStore('blobs');
+  };
+  req.onsuccess = () => resolve(req.result);
+  req.onerror = () => reject(req.error);
+});
+
+async function idbDo(storeName, mode, fn) {
+  const d = await idb;
+  return new Promise((resolve, reject) => {
+    const tx = d.transaction(storeName, mode);
+    const req = fn(tx.objectStore(storeName));
+    tx.oncomplete = () => resolve(req && req.result);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+const listProjects = () => idbDo('projects', 'readonly', (s) => s.getAll());
+const getProject = (id) => idbDo('projects', 'readonly', (s) => s.get(id));
+const putProject = (p) => idbDo('projects', 'readwrite', (s) => s.put(p));
+const removeProject = (id) => Promise.all([
+  idbDo('projects', 'readwrite', (s) => s.delete(id)),
+  idbDo('blobs', 'readwrite', (s) => s.delete(id)),
+]);
+
+async function readBytes(p) {
+  if (p.kind === 'file') return new Uint8Array(await (await p.handle.getFile()).arrayBuffer());
+  if (p.kind === 'url') {
+    const r = await fetch(p.url, { cache: 'no-store' });
+    if (r.status === 404) return null; // a new file on a writable server
+    if (!r.ok) throw new Error(r.status + ' ' + p.url);
+    return new Uint8Array(await r.arrayBuffer());
+  }
+  return (await idbDo('blobs', 'readonly', (s) => s.get(p.id))) || null;
+}
+
+async function writeBytes(p, bytes) {
+  if (p.kind === 'file') {
+    const w = await p.handle.createWritable();
+    await w.write(bytes);
+    await w.close();
+  } else if (p.kind === 'url') {
+    // Needs a server that accepts PUT (e.g. nginx dav_methods PUT); otherwise the project is read-only.
+    const r = await fetch(p.url, { method: 'PUT', body: bytes, headers: { 'Content-Type': 'application/vnd.sqlite3' } });
+    if (!r.ok) throw new Error('PUT ' + r.status);
+  } else {
+    await idbDo('blobs', 'readwrite', (s) => s.put(bytes, p.id));
+  }
+}
+
+async function hasAccess(p, ask) {
+  if (p.kind !== 'file') return true;
+  const opts = { mode: 'readwrite' };
+  if ((await p.handle.queryPermission(opts)) === 'granted') return true;
+  return ask && (await p.handle.requestPermission(opts)) === 'granted';
+}
+
+// ---- current project ----------------------------------------------------
+let cur = null; // { project, db, readOnly }
+let writeChain = Promise.resolve();
+
+function persist() {
+  const c = cur;
+  if (!c || c.readOnly) return Promise.resolve();
+  const bytes = c.db.export();
+  const job = writeChain.then(() => writeBytes(c.project, bytes)).catch((e) => {
+    if (c.project.kind !== 'url') throw e;
+    // server refused the write: keep editing in memory, user can "Save as" a local copy
+    c.readOnly = true;
+    console.warn('URL project is read-only:', e);
+  });
+  writeChain = job.catch(() => {});
+  return job;
+}
+
+const api = {
+  meta({ key, value }) {
+    const stored = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    cur.db.run(
+      'INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+      [key, stored]);
+    return persist();
+  },
+  async item({ id, section, action, title, content }) {
+    const db = cur.db;
+    if (action === 'add') {
+      const pos = db.exec('SELECT COALESCE(MAX(pos), -1) + 1 FROM items WHERE section = ?', [section])[0].values[0][0];
+      db.run('INSERT INTO items (section, title, content, pos) VALUES (?, ?, ?, ?)', [section, title || '', content || '', pos]);
+      const newId = db.exec('SELECT last_insert_rowid()')[0].values[0][0];
+      await persist();
+      return { id: newId };
+    }
+    if (action === 'set') {
+      if (content !== undefined) db.run('UPDATE items SET content = ? WHERE id = ? AND section = ?', [content, id, section]);
+      if (title !== undefined) db.run('UPDATE items SET title = ? WHERE id = ? AND section = ?', [title, id, section]);
+    } else if (action === 'delete') {
+      db.run('DELETE FROM items WHERE id = ? AND section = ?', [id, section]);
+    }
+    await persist();
+    return {};
+  },
+};
+
+let pending = null;
+
+function setStatus(kind, text) {
+  statusEl.className = 'pill ' + kind;
+  statusEl.textContent = text;
+}
+
+function savedStatus() {
+  if (cur && cur.readOnly) setStatus('dirty', 'Read-only — use Save as');
+  else setStatus('ok', 'Saved');
+}
+
+function queueSave(fn) {
+  if (pending && pending.timer) clearTimeout(pending.timer);
+  const run = () => {
+    pending = null;
+    setStatus('saving', 'Saving…');
+    return Promise.resolve(fn())
+      .then(savedStatus)
+      .catch((e) => { setStatus('error', 'Save error'); console.error(e); });
+  };
+  pending = { timer: setTimeout(run, 500), run };
+  setStatus('dirty', 'Unsaved…');
+}
+
+function flushPending() {
+  if (!pending) return Promise.resolve();
+  clearTimeout(pending.timer);
+  return pending.run();
+}
+
+async function ensureRow(wrapper) {
+  if (wrapper.dataset.rowId && !wrapper.dataset.rowId.startsWith('new-')) {
+    return wrapper.dataset.rowId;
+  }
+  const section = wrapper.closest('[data-section]').getAttribute('data-section');
+  const payload = { section, action: 'add' };
+  if (wrapper.classList.contains('bullet')) {
+    payload.content = textOf(wrapper.querySelector('.text'));
+  } else {
+    payload.title = textOf(wrapper.querySelector('.title'));
+    payload.content = textOf(wrapper.querySelector('.body'));
+  }
+  const res = await api.item(payload);
+  wrapper.dataset.rowId = res.id;
+  return res.id;
+}
+
+async function saveItem(wrapper, patch) {
+  const id = await ensureRow(wrapper);
+  const section = wrapper.closest('[data-section]').getAttribute('data-section');
+  await api.item(Object.assign({ id, section, action: 'set' }, patch));
+}
+function createBulletElement() {
+  const li = document.createElement('li');
+  li.className = 'bullet';
+  li.dataset.rowId = 'new-' + Date.now();
+  li.innerHTML =
+    '<span class="mark">&#9656;</span>' +
+    '<div class="text" contenteditable="true" spellcheck="false" data-ph="Type a completed task…"></div>' +
+    '<button class="del" title="Remove">&#10005;</button>';
+  return li;
+}
+
+function createCardElement() {
+  const card = document.createElement('article');
+  card.className = 'card';
+  card.dataset.rowId = 'new-' + Date.now();
+  card.innerHTML =
+    '<div class="title" contenteditable="true" spellcheck="false" data-ph="Topic…"></div>' +
+    '<div class="body" contenteditable="true" spellcheck="false" data-ph="Write the details…"></div>' +
+    '<button class="del" title="Remove">&#10005;</button>';
+  return card;
+}
+
+function addBullet(afterLi) {
+  const li = createBulletElement();
+  if (afterLi) afterLi.after(li); else $('#summaryList').appendChild(li);
+  li.querySelector('.text').focus();
+}
+
+function addCard() {
+  const card = createCardElement();
+  $('#detailsList').appendChild(card);
+  card.querySelector('.title').focus();
+}
+
+function setMeta(key, value) {
+  queueSave(() => api.meta({ key, value }));
+}
+
+// ---- header meta (week number, label, month, day chips) -----------------
+$$('[data-meta]').forEach((el) => {
+  el.addEventListener('input', () => {
+    if (el.classList.contains('daynum')) {
+      setMeta('days', $$('#daysRow .daynum').map((x) => x.innerText.trim()).filter(Boolean));
+    } else {
+      setMeta(el.dataset.meta, el.innerText);
+    }
+  });
+});
+
+// ---- summary bullets ----------------------------------------------------
+$('#summaryList').addEventListener('input', (e) => {
+  const text = e.target.closest('.text');
+  if (!text) return;
+  const li = text.closest('.bullet');
+  queueSave(() => saveItem(li, { content: textOf(text) }));
+});
+
+$('#summaryList').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    const text = e.target.closest('.text');
+    if (!text) return;
+    e.preventDefault();
+    addBullet(text.closest('.bullet'));
+  }
+});
+
+// ---- detail cards -------------------------------------------------------
+$('#detailsList').addEventListener('input', (e) => {
+  const card = e.target.closest('.card');
+  if (!card) return;
+  if (e.target.classList.contains('title')) {
+    queueSave(() => saveItem(card, { title: textOf(e.target) }));
+  } else if (e.target.classList.contains('body')) {
+    queueSave(() => saveItem(card, { content: textOf(e.target) }));
+  }
+});
+
+// ---- add / delete --------------------------------------------------------
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-add="summary"]')) { e.preventDefault(); addBullet(null); return; }
+  if (e.target.closest('[data-add="details"]')) { e.preventDefault(); addCard(); return; }
+  const del = e.target.closest('.del');
+  if (!del) return;
+  const wrapper = del.closest('.bullet, .card');
+  const id = wrapper.dataset.rowId;
+  if (id && !id.startsWith('new-')) {
+    const section = wrapper.closest('[data-section]').getAttribute('data-section');
+    api.item({ id, section, action: 'delete' }).catch(console.error);
+  }
+  flushPending();
+  wrapper.remove();
+});
+
+// flush pending save when letting go of an editable element
+document.addEventListener('focusout', () => flushPending());
+
+// ---- rendering -----------------------------------------------------------
+$$('[data-meta]').forEach((el) => { el.dataset.default = el.innerText; });
+
+function render(data) {
+  const m = data.meta || {};
+  $$('[data-meta]').forEach((el) => {
+    if (el.classList.contains('daynum')) return;
+    const k = el.dataset.meta;
+    el.innerText = m[k] != null ? m[k] : (el.dataset.default || '');
+  });
+  $('#daysRow').innerHTML = '';
+  $('#summaryList').innerHTML = '';
+  $('#detailsList').innerHTML = '';
+  (m.days && m.days.length ? m.days : ['7', '8', '9', '10', '11']).forEach((d) => {
+    const chip = document.createElement('span');
+    chip.className = 'daynum';
+    chip.contentEditable = 'true';
+    chip.spellcheck = false;
+    chip.dataset.meta = 'days';
+    chip.textContent = d;
+    chip.addEventListener('input', () =>
+      setMeta('days', $$('#daysRow .daynum').map((x) => x.innerText.trim()).filter(Boolean)));
+    $('#daysRow').appendChild(chip);
+  });
+  (data.summary || []).forEach((it) => {
+    const li = createBulletElement();
+    li.dataset.rowId = it.id;
+    li.querySelector('.text').innerText = it.content || '';
+    $('#summaryList').appendChild(li);
+  });
+  (data.details || []).forEach((it) => {
+    const card = createCardElement();
+    card.dataset.rowId = it.id;
+    card.querySelector('.title').innerText = it.title || '';
+    card.querySelector('.body').innerText = it.content || '';
+    $('#detailsList').appendChild(card);
+  });
+}
+
+function setEditable(on) {
+  $('main').inert = !on;
+  $('.brand').inert = !on;
+  $('main').style.opacity = on ? '' : '0.4';
+}
+
+// ---- project switching ---------------------------------------------------
+const LAST_KEY = 'weekly.lastProject';
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+const kindLabel = { file: 'file', url: 'url', browser: 'in browser' };
+
+async function refreshSelect() {
+  const list = (await listProjects()).sort((a, b) => a.name.localeCompare(b.name));
+  $('#projSel').innerHTML = '';
+  list.forEach((p) => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.name + ' (' + kindLabel[p.kind] + ')';
+    $('#projSel').appendChild(o);
+  });
+  if (cur) $('#projSel').value = cur.project.id;
+  return list;
+}
+
+async function closeCurrent() {
+  await flushPending();
+  await writeChain;
+  if (cur) cur.db.close();
+  cur = null;
+}
+
+// ask=true only from a click/change handler: Chrome needs a user gesture to re-grant file access.
+async function openProject(id, ask) {
+  await closeCurrent();
+  const p = await getProject(id);
+  if (!p) return;
+  $('#btnGrant').hidden = true;
+  if (!(await hasAccess(p, ask))) {
+    setEditable(false);
+    $('#projSel').value = p.id;
+    $('#dbName').textContent = p.name;
+    $('#btnGrant').textContent = 'Allow access to ' + p.name;
+    $('#btnGrant').dataset.id = p.id;
+    $('#btnGrant').hidden = false;
+    setStatus('dirty', 'Needs permission');
+    return;
+  }
+  setStatus('saving', 'Loading…');
+  try {
+    const SQL = await sqlReady;
+    const bytes = await readBytes(p);
+    const db = bytes ? new SQL.Database(bytes) : new SQL.Database();
+    initSchema(db);
+    cur = { project: p, db, readOnly: false };
+    try { localStorage.setItem(LAST_KEY, p.id); } catch (e) { /* ignore */ }
+    render(loadData(db));
+    $('#projSel').value = p.id;
+    $('#dbName').textContent = p.kind === 'url' ? p.url : p.name;
+    setEditable(true);
+    setStatus('ok', 'Loaded');
+  } catch (e) {
+    setEditable(false);
+    setStatus('error', 'Could not open');
+    console.error(e);
+  }
+}
+
+async function addProject(p, bytes) {
+  await putProject(p);
+  if (bytes) await writeBytes(p, bytes);
+  await refreshSelect();
+  await openProject(p.id, true);
+}
+
+async function emptyDbBytes() {
+  const SQL = await sqlReady;
+  const db = new SQL.Database();
+  initSchema(db);
+  const bytes = db.export();
+  db.close();
+  return bytes;
+}
+
+const pickerAborted = (e) => e && e.name === 'AbortError';
+
+$('#projSel').addEventListener('change', (e) => openProject(e.target.value, true));
+$('#btnGrant').addEventListener('click', (e) => openProject(e.target.dataset.id, true));
+
+$('#btnNew').addEventListener('click', async () => {
+  try {
+    if (hasFS) {
+      const handle = await window.showSaveFilePicker({ suggestedName: 'week.sqlite', types: SQLITE_TYPES });
+      await addProject({ id: newId(), name: handle.name, kind: 'file', handle }, await emptyDbBytes());
+    } else {
+      const n = (await listProjects()).filter((p) => p.kind === 'browser').length + 1;
+      await addProject({ id: newId(), name: 'Project ' + n, kind: 'browser' }, await emptyDbBytes());
+    }
+  } catch (e) { if (!pickerAborted(e)) { setStatus('error', 'Could not create'); console.error(e); } }
+});
+
+$('#btnOpen').addEventListener('click', async () => {
+  if (!hasFS) { $('#fileInput').click(); return; }
+  try {
+    const [handle] = await window.showOpenFilePicker({ types: SQLITE_TYPES });
+    // reuse the existing entry if this file is already registered
+    for (const p of await listProjects()) {
+      if (p.kind === 'file' && (await p.handle.isSameEntry(handle))) return openProject(p.id, true);
+    }
+    await addProject({ id: newId(), name: handle.name, kind: 'file', handle });
+  } catch (e) { if (!pickerAborted(e)) { setStatus('error', 'Could not open'); console.error(e); } }
+});
+
+// fallback (Firefox/Safari): import the file's contents into browser storage
+$('#fileInput').addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  await addProject({ id: newId(), name: f.name, kind: 'browser' }, new Uint8Array(await f.arrayBuffer()));
+});
+
+$('#btnUrl').addEventListener('click', () => {
+  $('#urlForm').hidden = !$('#urlForm').hidden;
+  if (!$('#urlForm').hidden) $('#urlInput').focus();
+});
+
+async function openUrl(raw) {
+  const url = new URL(raw, location.href).href;
+  const existing = (await listProjects()).find((p) => p.kind === 'url' && p.url === url);
+  if (existing) return openProject(existing.id, true);
+  const name = decodeURIComponent(url.split('/').filter(Boolean).pop() || url);
+  await addProject({ id: newId(), name, kind: 'url', url });
+}
+
+$('#urlForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('#urlForm').hidden = true;
+  await openUrl($('#urlInput').value.trim());
+  $('#urlInput').value = '';
+});
+
+$('#btnCopy').addEventListener('click', async () => {
+  if (!cur) return;
+  await flushPending();
+  const bytes = cur.db.export();
+  const base = cur.project.name.replace(/\.(sqlite3?|db)$/i, '');
+  try {
+    if (hasFS) {
+      // the copy becomes a project of its own, so a read-only URL can be continued locally
+      const handle = await window.showSaveFilePicker({ suggestedName: base + '.sqlite', types: SQLITE_TYPES });
+      await addProject({ id: newId(), name: handle.name, kind: 'file', handle }, bytes);
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([bytes], { type: 'application/vnd.sqlite3' }));
+      a.download = base + '.sqlite';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+  } catch (e) { if (!pickerAborted(e)) { setStatus('error', 'Could not save'); console.error(e); } }
+});
+
+$('#btnForget').addEventListener('click', async () => {
+  const id = $('#projSel').value;
+  const p = id && (await getProject(id));
+  if (!p) return;
+  // file/url projects only lose their list entry; browser projects are their only copy
+  if (p.kind === 'browser' && !confirm('Delete "' + p.name + '" from this browser? Use "Save as" first to keep a copy.')) return;
+  if (cur && cur.project.id === id) await closeCurrent();
+  await removeProject(id);
+  const list = await refreshSelect();
+  if (list.length) await openProject(list[0].id, false);
+  else await start();
+});
+
+// ---- startup -------------------------------------------------------------
+// ?db=<url> opens (and remembers) a shared database, e.g. index.html?db=/dbs/team.sqlite
+async function start() {
+  const shared = new URLSearchParams(location.search).get('db');
+  if (shared) { await openUrl(shared); return; }
+  let list = await refreshSelect();
+  if (!list.length) {
+    await putProject({ id: newId(), name: 'My week', kind: 'browser' });
+    list = await refreshSelect();
+  }
+  let last = null;
+  try { last = localStorage.getItem(LAST_KEY); } catch (e) { /* ignore */ }
+  await openProject(list.some((p) => p.id === last) ? last : list[0].id, false);
+}
+
+start().catch((e) => { setStatus('error', 'Startup failed'); console.error(e); });
+</script>
+</body>
+</html>
